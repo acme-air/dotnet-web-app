@@ -1,12 +1,10 @@
-// path of the template to use
-def templatePath = 'https://raw.githubusercontent.com/acme-air/dotnet-web-app/master/openshift/templates/dotnet-app-template.json'
-// name of the template that will be created
-def templateName = 'dotnet-web-app'
-// NOTE, the "pipeline" directive/closure from the declarative pipeline syntax needs to include, or be nested outside,
-// and "openshift" directive/closure from the OpenShift Client Plugin for Jenkins.  Otherwise, the declarative pipeline engine
-// will not be fully engaged.
+def image
+def imageTag
+def imageTagPartial
+
 pipeline {
     agent any
+    
     options {
         // set a timeout of 20 minutes for this pipeline
         timeout(time: 20, unit: 'MINUTES')
@@ -14,12 +12,15 @@ pipeline {
     }
 
     environment {
+        REPOSITORY_NAME = "${env.GIT_URL.tokenize('/')[3].split('\\.')[0]}"
+        REPOSITORY_OWNER = "${env.GIT_URL.tokenize('/')[2]}"
+        GIT_SHORT_REVISION = "${env.GIT_COMMIT[0..7]}"
+        IGNORE_ENV='DL3006,DL3020,DL4000'
         
         DOCKER_REGISTRY="797124978737.dkr.ecr.us-east-2.amazonaws.com"
         DOCKER_REPOSITORY="dotnet-web-app"
         REGION="us-east-2"
         BUILD_TAG= "latest"
-        IGNORE_ENV='DL3006,DL3020,DL4000'
     }
 
     stages {
@@ -29,6 +30,32 @@ pipeline {
                 echo "Initialized"
             } // steps
         } //stage
+        stage('Set Full Version') {
+          steps {
+            script {
+              def fullVersion
+              def version = fileExists("version.txt") ? sh(script: "cat version.txt", returnStdout: true).trim() : "0.0.0"
+              if (env.GIT_BRANCH == 'master') {
+                if (env.GIT_TAG) {
+                  if (!(env.GIT_TAG =~ version)) {
+                    error "Git tag '${env.GIT_TAG}' does not match version '${version}' from verion.txt Please correct mismatch and rebuild."
+                  }
+                  fullVersion = env.GIT_TAG
+                } else {
+                  fullVersion = "${version}-rc.${env.BUILD_NUMBER}"
+                }
+              } else if (env.GIT_BRANCH == 'integration') {
+                fullVersion = "${version}-pre.${env.BUILD_NUMBER}"
+              } else {
+                fullVersion = "${version}-${env.GIT_BRANCH}.${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
+              }
+              echo "Full version calculated as '${fullVersion}' based on branch '${env.GIT_BRANCH}'"
+              imageTagPartial = "${env.REPOSITORY_NAME.replace("docker-", "")}"
+              imageTag = "${imageTagPartial}:${fullVersion}"
+              echo "Image Tag '${imageTag}''"
+            }
+          }
+        }
         stage('Linting') {
             steps {
                 sh 'printf "ignored:" > hadolint.conf;'
