@@ -16,7 +16,7 @@ pipeline {
     environment {
         
         DOCKER_REGISTRY="797124978737.dkr.ecr.us-east-2.amazonaws.com"
-        DOCKER_REPOSITORY="gsort_fargate_integration_service"
+        DOCKER_REPOSITORY="dotnet-web-app"
         REGION="us-east-2"
         BUILD_TAG= "latest"
         IGNORE_ENV='DL3006,DL3020,DL4000'
@@ -41,7 +41,7 @@ pipeline {
                 stage('local') {
                     steps {
                         script {
-                            sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}:${BUILD_TAG} -f NetCoreDockerTest/Dockerfile ."
+                            sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}:${BUILD_TAG} -f dotnet-web-app/Dockerfile ."
                         } // script
                     } // steps
                 } // stage
