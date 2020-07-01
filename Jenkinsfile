@@ -33,13 +33,13 @@ pipeline {
             steps {
                 sh 'echo Running compliance'
                 sh 'rm -rf dotnet-web-app-inspec'
-                //sh 'git clone https://github.com/acme-air/dotnet-web-app-inspec'
+                sh 'git clone https://github.com/acme-air/dotnet-web-app-inspec'
                 sh 'inspec exec dotnet-web-app-inspec --reporter=junit junit:output.xml'
             }
         }
         stage('Dockerfile linting') {
             steps {
-                sh 'ls'
+                sh 'find .'
                 sh 'printf "ignored:" > hadolint.conf;'
                 sh '(IFS=","; for word in ${IGNORE_ENV}; do printf "\n  - $word" >> hadolint.conf ; done)'
                 
