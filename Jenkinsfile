@@ -41,7 +41,8 @@ pipeline {
                 stage('local') {
                     steps {
                         script {
-                            sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}:${BUILD_TAG} -f dotnet-web-app/Dockerfile ."
+                            sh "find . -name Dockerfile"
+                            sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}:${BUILD_TAG} -f Dockerfile ."
                         } // script
                     } // steps
                 } // stage
