@@ -1,0 +1,67 @@
+---
+- hosts: all
+  become: true
+  vars_files:
+    - vars/default.yml
+
+  tasks:
+    - name: Install Httpd and PHP
+      yum: name={{ item }} state=latest
+      loop: "{{ php_modules }}"
+      tags: [ system ]
+
+  # WordPress Configuration
+    - name: Downloading Wodpress.
+      get_url: 
+        url: http://www.wordpress.org/latest.tar.gz  
+        dest: /tmp/wordpress.tar
+      tags: [ apache ]
+
+    - name: Extracting wordpress contents.
+      unarchive: 
+        src: /tmp/wordpress.tar 
+        dest: /tmp/  
+        remote_src: yes
+      tags: [ apache ]
+
+    - name: Copying wordpress contents.
+      shell: "cp -r /tmp/wordpress/*  /var/www/html/"
+      tags: [ apache ]
+
+    - name: Removing Wordpress.tar
+      file: path=/tmp/wordpress.tar state=absent
+      tags: [ apache ]
+
+    - name: Removing Wodpress Extracted Directory.
+      file: path=/tmp/wordpress state=absent
+      tags: [ apache ]
+      
+    - name: Downloading wp-content
+      get_url: 
+        url: https://downloads.wordpress.org/plugin/woocommerce.3.5.4.zip
+        dest: /tmp/woocommerce.3.5.4.zip
+      tags: [ apache ]
+
+    - name: Extracting wp-content
+      unarchive: 
+        src: /tmp/woocommerce.3.5.4.zip
+        dest: /var/www/html/wp-content/plugins/
+        remote_src: yes
+      tags: [ apache ]
+
+    - name: Extracting uploads content
+      unarchive: 
+        src: https://application-migration-with-aws-workshop.s3-us-west-2.amazonaws.com/scripts/uploads.zip
+        dest: /var/www/html/wp-content/
+        remote_src: yes
+
+    - name: Set up wp-config
+      template:
+        src: "files/wp-config.php.j2"
+        dest: "/var/www/html/wp-config.php"
+      tags: [ wordpress ]
+
+    - name: Chaning Doc-root permission.
+      shell: 'chown -R apache:apache /var/www/html/'
+      args:
+       warn: false # set warn=false to prevent warning

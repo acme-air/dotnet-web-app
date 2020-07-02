@@ -1,0 +1,55 @@
+{
+  "variables": {
+  "aws_access_key"                : null,
+  "aws_secret_key"                : null,
+  "vpnid"                         : null,
+  "subnetid"                      : null,
+	"ami-name"                      : "packer-rehost-wordpress",
+	"ami-version"                   : "v1.0",
+	"owner"                         : "terraform",
+	"project"                       : "onerfp"
+  },
+  "builders": [
+  {
+    "name": "service-builder",
+    "ami_name": "{{user `ami-name`}}-{{user `ami-version`}}",
+    "type": "amazon-ebs",
+    "instance_type": "t2.small",
+    "ssh_username": "ec2-user",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "vpc_id": "{{user `vpnid`}}",
+    "subnet_id": "{{user `subnetid`}}",
+    "region": "us-east-2",
+    "associate_public_ip_address": true,
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "name": "amzn2-ami-hvm-*",
+        "root-device-type": "ebs"
+      },
+      "owners": ["137112412989"],
+      "most_recent": true
+    },
+  "tags": {
+    "Owner": "{{user `owner`}}",
+    "Name": "{{user `ami-name`}}-{{user `ami-version`}}",
+    "Project": "{{user `project`}}"
+  }
+  }],
+  "provisioners": [
+       {
+            "type": "shell",
+            "inline": "while [ ! -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting for cloud-init...'; sleep 1; done"
+        },
+        {
+            "type": "shell",
+            "skip_clean": true,
+            "script": "./provisioners/scripts/bootstrap.sh"
+        },
+        {
+            "type": "ansible",
+            "playbook_file": "./provisioners/ansible/playbook.yml"
+        }
+   ]
+ }       

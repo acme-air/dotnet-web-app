@@ -1,0 +1,14 @@
+---
+#System Settings
+php_modules: [ 'httpd', 'php', 'php-mbstring', 'MySQL-python', 'php-mysqlnd', 'php-curl', 'php-gd', 'php-xml', 'php-xmlrpc', 'php-soap', 'php-intl', 'php-zip','nmap' ]
+
+#MySQL Settings
+mysql_db: "wordpress_db"
+mysql_user: "admin"
+mysql_password: "password888"
+mysql_db_host: "mysql-migration.czbcsx2pqfxb.us-east-2.rds.amazonaws.com"
+
+#HTTP Settings
+http_host: "unicorn"
+http_conf: "unicorn.conf"
+http_port: "80"
