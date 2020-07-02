@@ -5,7 +5,7 @@
   "vpnid"                         : null,
   "subnetid"                      : null,
 	"ami-name"                      : "packer-rehost-wordpress",
-	"ami-version"                   : "v1.0",
+	"ami-version"                   : "v1.1",
 	"owner"                         : "terraform",
 	"project"                       : "onerfp"
   },
